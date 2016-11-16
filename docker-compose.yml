@@ -1,0 +1,25 @@
+version: '2'
+services:
+  db:
+    image: postgres
+    container_name: pg01
+  web:
+    build: .
+    container_name: dg01
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && gunicorn --workers 3 --bind 0.0.0.0:8000 docker_django.wsgi:application"
+    volumes:
+      - .:/code
+    expose:
+      - "8000"
+    depends_on:
+      - db
+  nginx:
+    image: nginx:latest
+    container_name: ng01
+    ports:
+      - "80:80"
+    volumes:
+      - .:/code
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - web
